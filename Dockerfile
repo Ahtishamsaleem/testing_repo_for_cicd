@@ -25,6 +25,7 @@ RUN composer require laravel/ui
 
 # Generate the authentication scaffolding
 RUN php artisan ui vue --auth
+
 # Expose port 8000 and start the PHP server
 EXPOSE 8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
