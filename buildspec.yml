@@ -5,7 +5,7 @@ phases:
     runtime-versions:
       nodejs: latest
     commands:
-      - timeout 10000000 sh -c "until docker info; do echo .; sleep 1; done"
+      # - timeout 10000000 sh -c "until docker info; do echo .; sleep 1; done"
 
   pre_build:
     commands:
