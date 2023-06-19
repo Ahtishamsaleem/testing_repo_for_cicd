@@ -1,44 +1,44 @@
-# Base image
-FROM php:7.4-apache
+# Use the Bitnami Laravel image as the base image
+FROM docker.io/bitnami/laravel:10
 
-# Set the working directory in the container
-WORKDIR /var/www/html
+# Set the working directory to the app directory
+WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y \
-        git \
-        curl \
-        libpng-dev \
-        libonig-dev \
-        libxml2-dev \
-        zip \
-        unzip
+# Copy the composer.json and composer.lock files and install dependencies
+COPY composer.json composer.lock ./
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+#  --mount option to cache the Composer cache directory in a Docker volume.
+#  The composer install and composer dump-autoload commands will use the cached directory if it already exists,
+#  and only update it if the composer.json or composer.lock files have changed.
+RUN --mount=type=cache,target=/root/.composer/cache composer install --no-scripts --prefer-dist --no-progress --no-autoloader
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Copy the rest of the application files
+COPY . .
 
-# Copy the Laravel project files to the working directory
-COPY . /var/www/html
+# Generate the autoload files
+RUN --mount=type=cache,target=/root/.composer/cache composer dump-autoload --no-scripts  --optimize
 
-# Set permissions for Laravel directories
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Set the file permissions
+RUN chown -R bitnami:daemon /app/storage && chown -R bitnami:daemon /app/bootstrap/cache
+# Install laravel/ui package
+RUN composer require laravel/ui
 
-# Install project dependencies using Composer
-RUN composer install --optimize-autoloader --no-dev
+# Generate the authentication scaffolding
+RUN php artisan ui vue --auth
+# Expose port 8000 and start the PHP server
+EXPOSE 8000
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
 
-# Generate the application key
-RUN php artisan key:generate
+# Install database extension
+# RUN apt-get update && apt-get install -y \
+#     mariadb-client \
+#     && apt-get clean \
+#     && rm -rf /var/lib/apt/lists/*
 
-# Set up Apache configuration
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
-RUN a2enmod rewrite
-
-# Expose the container port
-EXPOSE 80
-
-# Start the Apache server
-CMD ["apache2-foreground"]
+# Set the database environment variables
+# ENV DB_CONNECTION=mysql
+# ENV DB_HOST=salesflo-pay-demo.csjwzpx6igxp.us-east-1.rds.amazonaws.com
+# ENV DB_PORT=3306
+# ENV DB_DATABASE=salesflo-pay
+# ENV DB_USERNAME=admin
+# ENV DB_PASSWORD=Salesflopay2022
