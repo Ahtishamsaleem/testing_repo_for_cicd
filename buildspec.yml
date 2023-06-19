@@ -1,0 +1,47 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      # - timeout 10000000 sh -c "until docker info; do echo .; sleep 1; done"
+      - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+  pre_build:
+    commands:
+      - aws --version
+      - echo $AWS_DEFAULT_REGION
+      - pip install --upgrade awscli
+      - aws --version
+      - aws configure set aws_access_key_id <YOUR_AWS_ACCESS_KEY_ID>
+      - aws configure set aws_secret_access_key <YOUR_AWS_SECRET_ACCESS_KEY>
+      - aws configure set default.region <YOUR_AWS_REGION>
+      - aws configure set default.output json
+      - $(aws ecr get-login --no-include-email --region <YOUR_AWS_REGION>)
+      - REPOSITORY_URI=960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image.
+      - echo 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo
+      - echo latest
+      - docker build -t 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:latest .
+      - docker tag 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:latest 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:v1
+
+  test:
+    commands:
+      - echo Running Laravel test cases
+      - docker run -v $CODEBUILD_SRC_DIR:/app 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:v1 php artisan test
+
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - docker push 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:v1
+      - echo write definitions file...
+      - printf '[{"name":"exp-code-pipeline","imageUri":"%s"}]' 960114825933.dkr.ecr.us-east-1.amazonaws.com/newtestingrepo:v1 > imagedefinitions.json
+
+artifacts:
+  files: imagedefinitions.json
