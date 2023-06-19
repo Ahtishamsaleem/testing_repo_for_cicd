@@ -30,16 +30,3 @@ RUN php artisan ui vue --auth
 EXPOSE 8000
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
 
-# Install database extension
-# RUN apt-get update && apt-get install -y \
-#     mariadb-client \
-#     && apt-get clean \
-#     && rm -rf /var/lib/apt/lists/*
-
-# Set the database environment variables
-# ENV DB_CONNECTION=mysql
-# ENV DB_HOST=salesflo-pay-demo.csjwzpx6igxp.us-east-1.rds.amazonaws.com
-# ENV DB_PORT=3306
-# ENV DB_DATABASE=salesflo-pay
-# ENV DB_USERNAME=admin
-# ENV DB_PASSWORD=Salesflopay2022

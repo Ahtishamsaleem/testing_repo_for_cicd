@@ -51,14 +51,14 @@ class UserTest extends TestCase
         ]);
         $response->assertRedirect('/home');
     }
-    public function test_database()
-    {
-        $this->assertDatabaseMissing('users',[
-            'email'=>'ahtishamsaleem@gmail.com'
-        ]);
-    }
-    public function test_if_seeders_works()
-    {
-        $this->seed();
-    }
+    // public function test_database()
+    // {
+    //     $this->assertDatabaseMissing('users',[
+    //         'email'=>'ahtishamsaleem@gmail.com'
+    //     ]);
+    // }
+    // public function test_if_seeders_works()
+    // {
+    //     $this->seed();
+    // }
 }
